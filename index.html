@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>For You — Please Read ❤️‍🩹</title>
+<style>
+  :root{ --bg1:#0f172a; --bg2:#0ea5e9; }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;}
+  body{
+    background: linear-gradient(135deg,var(--bg1),var(--bg2));
+    display:flex;align-items:center;justify-content:center;overflow:hidden;padding:20px;color:#fff;
+  }
+  .stage{ width:100%; max-width:860px; border-radius:16px; padding:30px; display:flex;flex-direction:column;align-items:center; gap:12px; position:relative; }
+
+  /* Heart-with-bandage emoji */
+  .big-emoji{
+    font-size:96px; transform:translateY(48px); opacity:0;
+    filter: drop-shadow(0 10px 30px rgba(0,0,0,0.45));
+    animation: slideGlow 1.2s cubic-bezier(.2,.9,.2,1) forwards;
+  }
+  @keyframes slideGlow{
+    0%{ transform:translateY(48px); opacity:0; text-shadow:0 0 0 rgba(255,255,255,0); }
+    60%{ transform:translateY(-8px); opacity:1; text-shadow:0 0 28px rgba(255,255,255,0.9); }
+    100%{ transform:translateY(0); opacity:1; text-shadow:0 0 28px rgba(255,255,255,0.9); }
+  }
+  .big-emoji { animation-name: slideGlow, breathe; animation-duration:1.2s,3.6s; animation-delay:0s,1.2s; animation-fill-mode:forwards; animation-iteration-count:1, infinite; animation-timing-function: ease-out, ease-in-out; }
+  @keyframes breathe{ 0%{transform:scale(1);text-shadow:0 0 20px rgba(255,255,255,0.6)} 50%{transform:scale(1.03);text-shadow:0 0 36px rgba(255,255,255,0.95)} 100%{transform:scale(1);text-shadow:0 0 20px rgba(255,255,255,0.6)} }
+
+  /* Letter emoji */
+  .letter-emoji{ font-size:72px; margin-top:6px; opacity:0; transform:translateY(20px); cursor:pointer; }
+  .letter-emoji.show{ animation: popIn 0.8s cubic-bezier(.2,.9,.2,1) forwards; opacity:1; }
+  @keyframes popIn{ 0%{ transform:scale(.7) translateY(20px); opacity:0 } 60%{ transform:scale(1.06) translateY(-6px); opacity:1 } 100%{ transform:scale(1) translateY(0); opacity:1 } }
+
+  .hint{ color:rgba(255,255,255,0.9); margin-top:8px; font-size:14px; text-align:center; }
+
+  /* modal */
+  .modal{ position:fixed; left:50%; top:50%; transform:translate(-50%,-50%) scale(.98); width:92%; max-width:620px; background:linear-gradient(180deg,#fff,#fbfbfb); border-radius:14px; box-shadow:0 30px 80px rgba(2,6,23,0.6); padding:18px; color:#071022; display:none; z-index:40; }
+  .modal.show{ display:block; animation:openModal .28s cubic-bezier(.2,.9,.2,1) forwards; }
+  @keyframes openModal{ from{ transform:translate(-50%,-48%) scale(.97); opacity:0 } to{ transform:translate(-50%,-50%) scale(1); opacity:1 } }
+  .modal header{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .modal h3{ margin:0; font-size:20px; }
+  .modal .content{ margin-top:12px; white-space:pre-wrap; line-height:1.5; min-height:120px; font-size:15px; color:#122036; }
+  .modal .controls{ display:flex; gap:10px; justify-content:flex-end; margin-top:14px; }
+
+  .btn{ background:#0f172a; color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600; }
+  .btn.secondary{ background:transparent; border:1px solid rgba(11,18,32,0.08); color:#0b1220; padding:8px 10px; border-radius:8px; }
+
+  /* camera button and photo */
+  .photo-area{ margin-top:12px; display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; }
+  .camera-btn{ font-size:42px; padding:10px 16px; border-radius:10px; cursor:pointer; border:none; background:linear-gradient(90deg,#ffd166,#ff7b7b); }
+  .camera-btn:active{ transform:scale(.98); }
+  .photo-preview{ width:100%; max-height:60vh; overflow:hidden; border-radius:10px; display:none; box-shadow:0 12px 30px rgba(2,6,23,0.35); }
+  .photo-preview img{ width:100%; height:auto; display:block; object-fit:cover; }
+
+  /* hearts */
+  .hearts{ position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:2; }
+  .heart{ position:absolute; font-size:22px; opacity:0.95; will-change:transform,opacity; animation: floatUp linear forwards; }
+  @keyframes floatUp{ 0%{ transform:translateY(20vh) scale(.8); opacity:0 } 10%{ opacity:1 } 100%{ transform:translateY(-30vh) scale(1.2); opacity:0 } }
+
+  .footer{ position:absolute; bottom:12px; left:20px; color:rgba(255,255,255,0.85); font-size:13px; }
+  @media (max-width:520px){ .big-emoji{ font-size:78px } .letter-emoji{ font-size:60px } .modal{ padding:14px } }
+</style>
+</head>
+<body>
+  <div class="stage" role="main" aria-label="Sorry page">
+    <div style="text-align:center; width:100%;">
+      <div id="bandageHeart" class="big-emoji" aria-hidden="true">❤️‍🩹</div>
+      <div id="mail" class="letter-emoji" role="button" tabindex="0" aria-label="Open letter">💌</div>
+      <div class="hint">Click the letter to read my message</div>
+    </div>
+
+    <div class="hearts" id="hearts" aria-hidden="true"></div>
+    <div class="footer">Made with ❤️</div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <header>
+      <h3 id="modalTitle">A Letter for You</h3>
+      <button class="btn" id="closeBtn" aria-label="Close">Close</button>
+    </header>
+
+    <!-- raw message stored in data-raw -->
+    <div class="content" id="letterContent" data-raw="heyy my little sun shine i know its getting complicated but we can't run like these
+What about our dreams,promises we made together mmy ko kya kahenge yaad hai kya kha 'yeh rishta chlega' rishta ek kharab car ki trh ho jaaye toh thoda Harder push kro woh chlega it's a test we can't fail like this
+Your well wisher ⭐">
+      <!-- typewriter output will appear here -->
+    </div>
+
+    <div class="controls" id="modalControls" style="display:none;">
+      <div class="photo-area" id="photoArea" style="flex:1;">
+        <button class="camera-btn" id="cameraBtn" title="Open photo">📸 View Photo</button>
+        <div class="photo-preview" id="photoPreview" aria-hidden="true">
+          <img id="previewImg" src="cute.jpg" alt="special photo">
+        </div>
+      </div>
+
+      <div style="margin-left:12px; display:flex; gap:8px; align-items:center;">
+        <button class="btn secondary" id="editBtn">Edit</button>
+        <button class="btn" id="downloadBtn">Download</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MUSIC: using the exact filename you provided -->
+  <audio id="bgMusic" src="Songgssa.mp3" preload="auto"></audio>
+
+<script>
+  // Elements
+  const bandageHeart = document.getElementById('bandageHeart');
+  const mail = document.getElementById('mail');
+  const modal = document.getElementById('modal');
+  const closeBtn = document.getElementById('closeBtn');
+  const letterContent = document.getElementById('letterContent');
+  const editBtn = document.getElementById('editBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const hearts = document.getElementById('hearts');
+  const modalControls = document.getElementById('modalControls');
+  const cameraBtn = document.getElementById('cameraBtn');
+  const photoPreview = document.getElementById('photoPreview');
+  const previewImg = document.getElementById('previewImg');
+  const bgMusic = document.getElementById('bgMusic');
+
+  // Show mail after heart animation ends
+  bandageHeart.addEventListener('animationend', () => {
+    setTimeout(() => {
+      mail.classList.add('show');
+    }, 350);
+  });
+  // fallback: ensure mail shows if animation already done
+  setTimeout(()=>{
+    if (!mail.classList.contains('show') && getComputedStyle(bandageHeart).opacity === "1") {
+      mail.classList.add('show');
+    }
+  }, 2000);
+
+  // Typewriter function
+  function typeWriter(text, el, speed=28){
+    el.textContent = '';
+    let i=0;
+    return new Promise((resolve)=>{
+      function step(){
+        if(i < text.length){
+          el.textContent += text.charAt(i);
+          i++;
+          setTimeout(step, speed);
+        } else resolve();
+      }
+      step();
+    });
+  }
+
+  // Spawn hearts visual
+  function spawnHearts(count=12){
+    hearts.innerHTML = '';
+    for(let i=0;i<count;i++){
+      const s = document.createElement('span');
+      s.className = 'heart';
+      s.textContent = ['💖','💛','💗','💕'][Math.floor(Math.random()*4)];
+      s.style.left = (Math.random()*100) + '%';
+      const delay = Math.random()*2;
+      const dur = 4 + Math.random()*4;
+      s.style.animationDuration = dur + 's';
+      s.style.animationDelay = delay + 's';
+      s.style.fontSize = (14 + Math.random()*34) + 'px';
+      hearts.appendChild(s);
+      setTimeout(()=>{ if(s && s.parentNode) s.parentNode.removeChild(s); }, (dur+delay)*1000 + 2000);
+    }
+  }
+
+  // Soft chime
+  let audioCtx;
+  function softChime(){
+    try{
+      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const now = audioCtx.currentTime;
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(660, now);
+      g.gain.setValueAtTime(0.0001, now);
+      o.connect(g); g.connect(audioCtx.destination);
+      g.gain.linearRampToValueAtTime(0.08, now + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+      o.start(now); o.stop(now + 1.2);
+    }catch(e){ console.warn(e); }
+  }
+
+  async function openModal(){
+    spawnHearts(14);
+    modal.classList.add('show');
+
+    // start music (user click allows play)
+    try{
+      bgMusic.currentTime = 0;
+      await bgMusic.play();
+    }catch(e){
+      // If playback blocked, ignore — user gesture should allow it.
+      console.warn('Audio play prevented', e);
+    }
+
+    // typewriter the message stored in data-raw
+    const raw = letterContent.getAttribute('data-raw') || letterContent.textContent;
+    softChime();
+    await typeWriter(raw, letterContent, 28);
+
+    // show camera + controls AFTER typing
+    modalControls.style.display = 'flex';
+  }
+
+  function closeModal(){
+    modal.classList.remove('show');
+    const raw = letterContent.getAttribute('data-raw') || letterContent.textContent;
+    letterContent.textContent = '';
+    letterContent.setAttribute('data-raw', raw);
+    hearts.innerHTML = '';
+    // hide photo & controls and pause music
+    photoPreview.style.display = 'none';
+    modalControls.style.display = 'none';
+    try{ bgMusic.pause(); bgMusic.currentTime = 0; }catch(e){}
+  }
+
+  mail.addEventListener('click', openModal);
+  mail.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') openModal(); });
+  closeBtn.addEventListener('click', closeModal);
+  window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeModal(); });
+
+  // camera opens the photo in modal
+  cameraBtn.addEventListener('click', ()=>{
+    photoPreview.style.display = 'block';
+    // smooth scroll preview into view inside modal (if needed)
+    previewImg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  // edit button to change the message (stores in data-raw)
+  editBtn.addEventListener('click', ()=>{
+    const current = letterContent.getAttribute('data-raw') || letterContent.textContent;
+    const newText = prompt('Edit your apology letter (use \\n for new lines):', current);
+    if(newText !== null){
+      letterContent.setAttribute('data-raw', newText);
+      if(modal.classList.contains('show')){
+        // re-run typewriter
+        typeWriter(newText, letterContent, 26);
+      }
+    }
+  });
+
+  // download letter as a small HTML file
+  downloadBtn.addEventListener('click', ()=>{
+    const html = '<!doctype html><meta charset="utf-8"><title>My Letter</title><pre style="white-space:pre-wrap;font-family:system-ui;padding:20px;">'
+      + (letterContent.getAttribute('data-raw') || letterContent.textContent).replace(/</g,'&lt;')
+      + '</pre>';
+    const blob = new Blob([html], {type:'text/html'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'my_letter.html';
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  });
+
+  // accessibility
+  window.addEventListener('load', ()=>{ setTimeout(()=>{ mail.focus(); }, 800); });
+</script>
+</body>
+</html>
